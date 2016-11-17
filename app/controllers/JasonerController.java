@@ -1,6 +1,7 @@
 package controllers;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import com.github.mustachejava.DefaultMustacheFactory;
@@ -16,7 +17,9 @@ import java.io.*;
 import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * Created by juuus on 11/12/16.
@@ -26,6 +29,31 @@ public class JasonerController extends Controller {
     public Result jsonResult(Result httpResponse) {
         response().setContentType("application/json; charset=utf-8");
         return httpResponse;
+    }
+
+    public Result getJasoners() {
+        String dir = Play.application().path() + "/"
+                + Play.application().configuration().getString("jasoner.template.path") + "/";
+        ObjectNode result = Json.newObject();
+        ArrayNode fileNames = result.putArray("templates");
+        try {
+            Files.list(Paths.get(dir)).forEach(f -> fileNames.add(f.getFileName().toString()));
+        } catch (IOException e) {
+            return jsonResult(internalServerError(result.put("message",e.getClass().getCanonicalName()+":"+e.getMessage())));
+        }
+        return jsonResult(ok(result));
+    }
+
+    public Result getJasoner(String id) {
+        String content = null;
+        try {
+            String path = this.getTemplatePath(id);
+            content = new String(Files.readAllBytes(Paths.get(path)));
+        } catch (IOException e) {
+            ObjectNode result = Json.newObject();
+            return jsonResult(internalServerError(result.put("message",e.getClass().getCanonicalName()+":"+e.getMessage())));
+        }
+        return jsonResult(ok( Json.parse(content.toString())));
     }
 
     @BodyParser.Of(BodyParser.Text.class)
@@ -42,6 +70,22 @@ public class JasonerController extends Controller {
         }
         return jsonResult(ok(result));
     }
+
+    @BodyParser.Of(BodyParser.Text.class)
+    public Result updateJasoner(String id) {
+        String template = request().body().asText();
+        ObjectNode result = Json.newObject();
+        result.put("message", "Update template");
+        result.put("template",template);
+        try {
+            result.put("template_id",id);
+            this.writeTemplateFile(id,template);
+        } catch (IOException e) {
+            return jsonResult(internalServerError(result.put("message",e.getClass().getCanonicalName()+":"+e.getMessage())));
+        }
+        return jsonResult(ok(result));
+    }
+
 
     @BodyParser.Of(BodyParser.Text.class)
     public Result doJasoner(String id) {
@@ -61,17 +105,17 @@ public class JasonerController extends Controller {
         return jsonResult(ok( Json.parse(w.toString())));
     }
 
-    private void writeTemplateFile(String url,String template) throws IOException {
-        try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(getTemplatePath(url)))) {
+    private void writeTemplateFile(String id,String template) throws IOException {
+        try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(getTemplatePath(id)))) {
             writer.write(template);
         }
-
     }
 
-    private String getTemplatePath(String url) throws UnsupportedEncodingException{
+
+    private String getTemplatePath(String id) throws UnsupportedEncodingException{
         return Play.application().path() + "/"
                 + Play.application().configuration().getString("jasoner.template.path") + "/"
-                + URLEncoder.encode(url,"UTF-8");
+                + URLEncoder.encode(id,"UTF-8");
     }
 
     private long getTemplateId() throws IOException {
