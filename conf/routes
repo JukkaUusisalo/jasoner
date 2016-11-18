@@ -8,7 +8,7 @@ GET     /jasoner_template           controllers.JasonerController.getJasoners()
 POST    /jasoner_template           controllers.JasonerController.createJasoner()
 GET     /jasoner_template/:id       controllers.JasonerController.getJasoner(id)
 PUT     /jasoner_template/:id       controllers.JasonerController.updateJasoner(id)
-#DELETE  /jasoner_template/:id       controllers.JasonerController.deleteJasoner(id)
+DELETE  /jasoner_template/:id       controllers.JasonerController.deleteJasoner(id)
 
 POST    /jasoner/:id                controllers.JasonerController.doJasoner(id)
 

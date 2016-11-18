@@ -1,9 +1,8 @@
 package controllers;
-import com.fasterxml.jackson.databind.JsonNode;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import com.github.mustachejava.DefaultMustacheFactory;
 import com.github.mustachejava.Mustache;
 import com.github.mustachejava.MustacheFactory;
@@ -17,16 +16,11 @@ import java.io.*;
 import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
-/**
- * Created by juuus on 11/12/16.
- */
 public class JasonerController extends Controller {
 
-    public Result jsonResult(Result httpResponse) {
+    private Result jsonResult(Result httpResponse) {
         response().setContentType("application/json; charset=utf-8");
         return httpResponse;
     }
@@ -37,7 +31,10 @@ public class JasonerController extends Controller {
         ObjectNode result = Json.newObject();
         ArrayNode fileNames = result.putArray("templates");
         try {
-            Files.list(Paths.get(dir)).forEach(f -> fileNames.add(f.getFileName().toString()));
+            Files.list(Paths.get(dir)).forEach(f -> {
+                if(!f.getFileName().toString().equals("index.txt"))
+                    fileNames.add(f.getFileName().toString());
+            });
         } catch (IOException e) {
             return jsonResult(internalServerError(result.put("message",e.getClass().getCanonicalName()+":"+e.getMessage())));
         }
@@ -86,6 +83,19 @@ public class JasonerController extends Controller {
         return jsonResult(ok(result));
     }
 
+    public Result deleteJasoner(String id) {
+        ObjectNode result = Json.newObject();
+        result.put("message", "Delete template");
+        try {
+            result.put("template_id",id);
+            this.deleteTemplate(id);
+        } catch (IOException e) {
+            return jsonResult(internalServerError(result.put("message",e.getClass().getCanonicalName()+":"+e.getMessage())));
+        }
+        return jsonResult(ok(result));
+
+    }
+
 
     @BodyParser.Of(BodyParser.Text.class)
     public Result doJasoner(String id) {
@@ -105,10 +115,25 @@ public class JasonerController extends Controller {
         return jsonResult(ok( Json.parse(w.toString())));
     }
 
+    private void deleteTemplate(String id) throws IOException {
+        String dir = Play.application().path() + "/"
+                + Play.application().configuration().getString("jasoner.template.path") + "/";
+        if(Files.exists(Paths.get(dir+id))) {
+            Files.delete(Paths.get(dir+id));;
+        }
+    }
+
     private void writeTemplateFile(String id,String template) throws IOException {
         try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(getTemplatePath(id)))) {
             writer.write(template);
         }
+        String dir = Play.application().path() + "/"
+                + Play.application().configuration().getString("jasoner.template.path") + "/";
+
+        try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(dir+"index.txt"))) {
+            writer.write(String.valueOf(Long.parseLong(id)+1));
+        }
+
     }
 
 
@@ -121,6 +146,12 @@ public class JasonerController extends Controller {
     private long getTemplateId() throws IOException {
         String dir = Play.application().path() + "/"
                 + Play.application().configuration().getString("jasoner.template.path") + "/";
-        return Files.list(Paths.get(dir)).count()+1;
+        if(Files.exists(Paths.get(dir+"index.txt"))) {
+            String indexStr = new String(Files.readAllBytes(Paths.get(dir+"index.txt")));
+            return Long.parseLong(indexStr);
+        } else {
+            return 1L;
+        }
+
     }
 }
