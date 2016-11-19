@@ -42,7 +42,7 @@ public class JasonerController extends Controller {
     }
 
     public Result getJasoner(String id) {
-        String content = null;
+        String content;
         try {
             String path = this.getTemplatePath(id);
             content = new String(Files.readAllBytes(Paths.get(path)));
@@ -50,7 +50,7 @@ public class JasonerController extends Controller {
             ObjectNode result = Json.newObject();
             return jsonResult(internalServerError(result.put("message",e.getClass().getCanonicalName()+":"+e.getMessage())));
         }
-        return jsonResult(ok( Json.parse(content.toString())));
+        return jsonResult(ok( Json.parse(content)));
     }
 
     @BodyParser.Of(BodyParser.Text.class)
@@ -115,11 +115,31 @@ public class JasonerController extends Controller {
         return jsonResult(ok( Json.parse(w.toString())));
     }
 
+    @BodyParser.Of(BodyParser.Text.class)
+    public Result doJasonerF(String id,String ecodedUrl) {
+        String source = request().body().asText();
+        StringWriter w = null;
+        ObjectNode result = null;
+        try {
+            MustacheFactory mf = new DefaultMustacheFactory();
+            Mustache mustache = mf.compile(new FileReader(getTemplatePath(id)),"jasoner");
+            w = new StringWriter();
+            HashMap<String,Object> sourceMap =
+                    new ObjectMapper().readValue(source, HashMap.class);
+            mustache.execute(w,sourceMap);
+            result = JasonerHttpPost.sendPost(ecodedUrl,Json.parse(w.toString()));
+        } catch (Exception e) {
+            ObjectNode error = Json.newObject();
+            return jsonResult(internalServerError(error.put("message",e.getClass().getCanonicalName()+":"+e.getMessage())));
+        }
+        return jsonResult(ok( result));
+    }
+
     private void deleteTemplate(String id) throws IOException {
         String dir = Play.application().path() + "/"
                 + Play.application().configuration().getString("jasoner.template.path") + "/";
         if(Files.exists(Paths.get(dir+id))) {
-            Files.delete(Paths.get(dir+id));;
+            Files.delete(Paths.get(dir+id));
         }
     }
 

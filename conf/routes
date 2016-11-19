@@ -11,4 +11,5 @@ PUT     /jasoner_template/:id       controllers.JasonerController.updateJasoner(
 DELETE  /jasoner_template/:id       controllers.JasonerController.deleteJasoner(id)
 
 POST    /jasoner/:id                controllers.JasonerController.doJasoner(id)
+POST    /jasoner/:id/:encUrl        controllers.JasonerController.doJasonerF(id,encUrl)
 

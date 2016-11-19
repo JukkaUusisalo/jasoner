@@ -21,5 +21,9 @@ DELETE  /jasoner_template/:id
 
 POST    /jasoner/:id
    request body is source json data and response is converted data based to mustache template
+   
+POST    /jasoner/:id/:encoded_url
+   request body is source json data and post mustached json data forward to the encoded url. 
+   Response is converted data based to mustache template.
 
 
