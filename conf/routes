@@ -4,6 +4,10 @@
 
 
 # Routes API Rest
+
+POST    /jasoner_token              controllers.JasonerController.createToken()
+
+
 GET     /jasoner_template           controllers.JasonerController.getJasoners()
 POST    /jasoner_template           controllers.JasonerController.createJasoner()
 GET     /jasoner_template/:id       controllers.JasonerController.getJasoner(id)

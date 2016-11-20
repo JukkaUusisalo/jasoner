@@ -17,6 +17,7 @@ import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.UUID;
 
 public class JasonerController extends Controller {
 
@@ -51,6 +52,13 @@ public class JasonerController extends Controller {
             return jsonResult(internalServerError(result.put("message",e.getClass().getCanonicalName()+":"+e.getMessage())));
         }
         return jsonResult(ok( Json.parse(content)));
+    }
+
+    public Result createToken() {
+        String uuid = UUID.randomUUID().toString();
+        ObjectNode result = Json.newObject();
+        result.put("token", uuid);
+        return jsonResult(ok(result));
     }
 
     @BodyParser.Of(BodyParser.Text.class)
