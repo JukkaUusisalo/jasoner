@@ -56,8 +56,15 @@ public class JasonerController extends Controller {
 
     public Result createToken() {
         String uuid = UUID.randomUUID().toString();
+        String dir = Play.application().path() + "/"
+                + Play.application().configuration().getString("jasoner.template.path") + "/" + uuid;
         ObjectNode result = Json.newObject();
-        result.put("token", uuid);
+        try {
+            Files.createDirectories(Paths.get(dir));
+            result.put("token", uuid);
+        } catch (IOException e) {
+            return jsonResult(internalServerError(result.put("message",e.getClass().getCanonicalName()+":"+e.getMessage())));
+        }
         return jsonResult(ok(result));
     }
 

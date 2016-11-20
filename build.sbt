@@ -1,6 +1,6 @@
-name := "template-api-rest-java-playframework"
+name := "jasoner"
 
-version := "1.1"
+version := "0.9"
 
 lazy val root = (project in file(".")).enablePlugins(PlayJava)
 
