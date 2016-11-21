@@ -5,15 +5,15 @@
 
 # Routes API Rest
 
-POST    /jasoner_token              controllers.JasonerController.createToken()
+POST    /jasoner_token                     controllers.JasonerController.createToken()
 
 
-GET     /jasoner_template           controllers.JasonerController.getJasoners()
-POST    /jasoner_template           controllers.JasonerController.createJasoner()
-GET     /jasoner_template/:id       controllers.JasonerController.getJasoner(id)
-PUT     /jasoner_template/:id       controllers.JasonerController.updateJasoner(id)
-DELETE  /jasoner_template/:id       controllers.JasonerController.deleteJasoner(id)
+GET     /jasoner_template/:token           controllers.JasonerController.getJasoners(token)
+POST    /jasoner_template/:token           controllers.JasonerController.createJasoner(token)
+GET     /jasoner_template/:token/:id       controllers.JasonerController.getJasoner(token,id)
+PUT     /jasoner_template/:token/:id       controllers.JasonerController.updateJasoner(token,id)
+DELETE  /jasoner_template/:token/:id       controllers.JasonerController.deleteJasoner(token,id)
 
-POST    /jasoner/:id                controllers.JasonerController.doJasoner(id)
-POST    /jasoner/:id/:encUrl        controllers.JasonerController.doJasonerF(id,encUrl)
+POST    /jasoner/:token/:id                controllers.JasonerController.doJasoner(token,id)
+POST    /jasoner/:token/:id/:encUrl        controllers.JasonerController.doJasonerF(token,id,encUrl)
 
